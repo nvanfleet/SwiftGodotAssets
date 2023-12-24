@@ -2,15 +2,16 @@ import Foundation
 
 var args = CommandLine.arguments
 
-let assetDirectory = args.count > 1 ? args[1] : "../"
-let generatorOutput = args.count > 2 ? args[2] : "../build/AssetsGeneration"
+let generatorOutput = args.count > 1 ? args[1] : "/Users/nvanfleet/src/PlantQuest/build/plugins/outputs/swiftgodotassets/SwiftGodotAssets/SwiftGodotAssetsPlugin/GeneratedSources"
+let assetDirectory = args.count > 2 ? args[2] : "/Users/nvanfleet/src/PlantQuest"
+let targetedTypes = args.count > 3 ? args[3] : "image,mesh,scene,script,shader,resource"
 
-if args.count < 3 {
-    print ("Usage is: generator path-to-extension-api output-directory doc-directory")
-    print ("- path-to-extensiona-ppi is the full path to extension_api.json from Godot")
-    print ("- output-directory is where the files will be placed")
-    print ("- doc-directory is the Godot documentation resides (godot/doc)")
-    print ("Running with Miguel's testing defaults")
+
+if args.count < 4 {
+    print("Usage is: generator path-to-files output-directory")
+    print("- path-to-files is the full path to extension_api.json from Godot")
+    print("- output-directory is where the files will be placed")
+    print("- target-types is what type of files are looked for")
 }
 
 do {
@@ -19,8 +20,15 @@ do {
     print("Error \(error)")
 }
 
-if let reader = FileSystemReader(rootPath: assetDirectory), let outputURL = URL(string: generatorOutput) {
+print("Processing directory: \(assetDirectory) to: \(generatorOutput) targets: \(targetedTypes)")
+
+let assetTypes = AssetType.fromDeliminated(string: targetedTypes)
+let outputURL = URL(fileURLWithPath: generatorOutput)
+if let reader = FileSystemReader(rootPath: assetDirectory, assetTypes: assetTypes) {
     let rootDirectory = reader.searchFilesFromRoot()
-    let codeGenerator = CodeGenerator(output: outputURL, rootDirectory: rootDirectory)
+    print("Done found \(rootDirectory.recursiveFileCount) files")
+    let codeGenerator = CodeGenerator(outputURL: outputURL, rootDirectory: rootDirectory,
+                                      assetTypes: assetTypes)
     codeGenerator.generate()
+    print("Asset generation done")
 }

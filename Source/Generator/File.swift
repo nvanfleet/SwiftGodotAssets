@@ -1,37 +1,41 @@
 import Foundation
 
 class File {
-    let url: URL
-    
+    /// The path to the file (masked to the root directory that is being searched)
+    let path: String
+
+    /// the name of the file without
     let name: String
     
+    /// The file extension of the file
     let fileExtension: String
     
-    var typeString: String {
-        switch self.type {
-        case .resource(let typeString):
-            return typeString
-        default:
-            return ""
-        }
-    }
-    
-    let type: FileType
-    
-    init(url: URL, name: String, fileExtension: String, type: FileType) {
-        self.url = url
+    /// The asset type of the file
+    let assetType: AssetType
+
+    /// The type of the file in Godot (Scene, Shader, etc)
+    var typeString: String
+
+    /// The godot path of the resource. Truncated to the root directory of the Godot project and using
+    /// the res:// scheme
+    var godotPath: String { return "res:/\(self.path)" }
+
+    init(path: String, name: String, fileExtension: String, assetType: AssetType, typeString: String) {
+        self.path = path
         self.name = name.split(separator: ".").first.map { String($0) } ?? name
         self.fileExtension = fileExtension
-        self.type = type
+        self.assetType = assetType
+        self.typeString = typeString
     }
 }
 
 extension File: Hashable {
     static func == (lhs: File, rhs: File) -> Bool {
-        return lhs.name == rhs.name
+        return lhs.name == rhs.name && lhs.path == rhs.path
     }
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(self.name)
+        hasher.combine(self.path)
     }
 }

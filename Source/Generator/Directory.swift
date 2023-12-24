@@ -3,47 +3,67 @@ import Foundation
 class Directory {
     private(set) var childDirectories = [String: Directory]()
     private var childFiles = [String: File]()
-    
+
+    /// The path of the directory.
+    let path: String
+
+    /// The name of this directory
     let name: String
-    
-    let componentCount: Int
-    
+
+    /// The files in this directory
     var files: [File] { self.childFiles.map { $0.value } }
     
+    /// The directories in this directory
     var directories: [Directory] { self.childDirectories.map { $0.value } }
     
+    /// Whether there are files in this directory
     var hasFiles: Bool { self.files.isEmpty == false }
     
-    // Whether the directory recursively contains resources
-    lazy var recursivelyContainsResources: Bool = {
-        guard self.files.isEmpty else {
+    /// Total count including this file and all child directories
+    var recursiveFileCount: Int {
+        var count = self.files.count
+        for childDirectory in self.directories {
+            count += childDirectory.recursiveFileCount
+        }
+        return count
+    }
+
+    /// Whether the directory recursively contains resources
+    func recursivelyContains(of assetType: AssetType) -> Bool {
+        if self.files.first(where: { $0.assetType == assetType }) != nil {
             return true
         }
-        
-        return self.directories.first(where: { $0.recursivelyContainsResources == true }) != nil
-    }()
-    
+
+        return self.directories.first(where: { $0.recursivelyContains(of: assetType) }) != nil
+    }
+
+    /// Files from the directory of a specific type
+    func files(of assetType: AssetType) -> [File] {
+        return self.files.filter { $0.assetType == assetType }
+    }
+
+    /// Add a directory to this directory
     func add(directory: Directory) {
         self.childDirectories[directory.name] = directory
     }
     
+    /// Add a file to this directory.
     func add(file: File) {
         self.childFiles[file.name] = file
     }
     
-    init(name: String, componentCount: Int) {
-        self.name = name
-        self.componentCount = componentCount
+    init(name: String, path: String) {
+        self.name = name.capitalizingFirstLetter()
+        self.path = path
     }
     
-    init?(url: URL?) {
-        guard let url, let last = url.pathComponents.last else {
+    init?(path: String) {
+        guard let last = path.split(separator: "/").last else {
             return nil
         }
-        
-        let components = url.pathComponents
-        self.name = last
-        self.componentCount = components.count
+
+        self.name = String(last)
+        self.path = path
     }
 }
 

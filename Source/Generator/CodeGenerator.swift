@@ -1,63 +1,85 @@
 import Foundation
 
 private let kFileStart = """
+/// This file is generated using SwiftGodotAssets
 import Foundation
 import SwiftGodot
 
 """
-private let kExtensionStart = "public extension Assets {"
-private let kEnumStartFormat = "public enum %s {"
+private let kEnumStartFormat = "public enum %@ {"
 private let kEnumEnd = "}"
-private let kFileFormat = "static let %s = Asset<%s>(path: %s)"
+
+private let kBaseDeclaration = "public extension Assets {"
+private let kFileFormat = "public static let %@ = %@<%@>(path: \"%@\")"
+private let kAsset = "Asset"
+private let kAssetScene = "AssetScene"
 
 final class CodeGenerator {
     private let fileManager: FileManager
-    private let output: URL
+    private let outputURL: URL
     private let rootDirectory: Directory
-    
-    init(output: URL, rootDirectory: Directory) {
+    private let assetTypes: [AssetType]
+
+    init(outputURL: URL, rootDirectory: Directory, assetTypes: [AssetType]) {
+        print("Generating code for \(assetTypes)")
         self.fileManager = FileManager.default
-        self.output = output
+        self.outputURL = outputURL
         self.rootDirectory = rootDirectory
+        self.assetTypes = assetTypes
     }
-    
+
     func generate() {
-        self.createFile(directory: self.rootDirectory, name: "Assets")
-//        for directory in self.rootDirectory.directories where directory.recursivelyContainsResources {
-//            self.createFile(directory: directory, name: directory.name)
-//        }
-    }
-    
-    // MARK: - Private
-    
-    private func createFile(directory: Directory, name: String) {
-        guard directory.hasFiles else {
-            return
+        for type in self.assetTypes {
+            self.createFile(for: type)
         }
-        
-        let fileName = "\(name).swift"
-        var output = [kFileStart, kExtensionStart]
-        output.append(contentsOf: self.createSection(for: directory, tabLevel: 0))
-        output.append(kEnumEnd)
-        
+    }
+
+    // MARK: - Private
+
+    private func createFile(for assetType: AssetType) {
+        let fileName = "\(assetType.fileRepresentation).swift"
+        print("Create file \(assetType.fileRepresentation)")
+        var output = [kFileStart]
+        let definitions = self.definitions(for: self.rootDirectory,
+                                           overridedName: assetType.classRepresentation,
+                                           assetType: assetType, tabs: 0)
+        output.append(contentsOf: definitions)
         self.generateFile(data: output, fileName: fileName)
     }
-    
-    private func createSection(for directory: Directory, tabLevel: Int) -> [String] {
-        var output = [kFileStart]
-        let tabLevel = 0
-        
-        output.append(self.tab(tabLevel) + String(format: kEnumStartFormat, directory.name))
-        for file in directory.files {
-            let fileString = String(format: kFileFormat, file.name, file.typeString, file.url.absoluteString)
-            output.append(self.tab(tabLevel + 1) + fileString)
-        }
-        output.append(self.tab(tabLevel) + kEnumEnd)
-        
-        for subDirectory in directory.directories where subDirectory.recursivelyContainsResources {
-            output.append(contentsOf: self.createSection(for: subDirectory, tabLevel: tabLevel + 1))
+
+    private func definitions(for directory: Directory, overridedName: String? = nil, assetType: AssetType,
+                             tabs: Int) -> [String]
+    {
+        guard directory.recursivelyContains(of: assetType) else {
+            return []
         }
         
+        var output = [self.tab(tabs) + String(format: kEnumStartFormat, overridedName ?? directory.name)]
+        for file in directory.files(of: assetType) {
+            let assetString: String
+            if assetType.isScene {
+                assetString = kAssetScene
+            } else {
+                assetString = kAsset
+            }
+
+            let fileString = String(format: kFileFormat, 
+                                    file.name.variableNameString(),
+                                    assetString,
+                                    file.typeString,
+                                    file.godotPath)
+            output.append(self.tab(tabs + 1) + fileString)
+        }
+
+        /// Recursively search child directories
+        for childDirectory in directory.directories {
+            let directoryOutput = self.definitions(for: childDirectory, assetType: assetType,
+                                                   tabs: tabs + 1)
+            output.append(contentsOf: directoryOutput)
+        }
+
+        output.append(self.tab(tabs) + kEnumEnd)
+
         return output
     }
     
@@ -71,13 +93,14 @@ final class CodeGenerator {
     }
     
     private func generateFile(data: [String], fileName: String) {
-        let fileURL = self.output.appendingPathComponent(fileName)
-        let dataToSave = data.joined(separator: "")
+        let fileURL = self.outputURL.appendingPathComponent(fileName)
+        let dataToSave = data.joined(separator: "\n")
         do {
-            try self.fileManager.createDirectory(at: self.output, withIntermediateDirectories: true)
-            self.fileManager.createFile(atPath: fileURL.path, contents: dataToSave.data(using: .utf8))
+            try self.fileManager.createDirectory(at: self.outputURL, withIntermediateDirectories: true)
+            try dataToSave.write(to: fileURL, atomically: false, encoding: .utf8)
         } catch let error {
             print("Error \(error)")
         }
     }
 }
+

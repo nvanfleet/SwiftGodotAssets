@@ -3,34 +3,32 @@ import Foundation
 final class FileStore {
     /// The root directory of the filestore.
     let rootDirectory: Directory
-    
-    func add(url: URL, type: FileType) {
-        let pathComponents = url.pathComponents
-        let isDirectory = type.isDirectory
+
+    func add(path: String, isDirectory: Bool, fileExtension: String, assetType: AssetType, typeString: String) 
+    {
+        let maskedPath = path.replacingOccurrences(of: self.rootDirectory.path, with: "")
+        let pathComponents = maskedPath.split(separator: "/").map(String.init)
         let finalIndex = pathComponents.count - 1
         var currentDirectory = self.rootDirectory
-        var currentIndex = self.rootDirectory.componentCount
-        while currentIndex < pathComponents.count {
-            let name = pathComponents[currentIndex]
-            
-            // Add file but escape if it's a directory
-            if currentIndex == finalIndex && !isDirectory {
-                let fileExtension = url.pathExtension
-                let file = File(url: url, name: name, fileExtension: fileExtension, type: type)
+        for (index, component) in pathComponents.enumerated() {
+            // Add file but escape if it's a directory leave function when done
+            let split = component.split(separator: ".")
+            if index == finalIndex && isDirectory == false, let name = split.first.map(String.init) {
+                let file = File(path: maskedPath, name: name, fileExtension: fileExtension,
+                                assetType: assetType, typeString: typeString)
                 currentDirectory.add(file: file)
-                break
+                return
             }
-            
+
             let directory: Directory
-            if let existing = currentDirectory.childDirectories[name] {
+            if let existing = currentDirectory.childDirectories[component] {
                 directory = existing
             } else {
-                directory = Directory(name: name, componentCount: currentIndex + 1)
+                directory = Directory(name: component, path: maskedPath)
                 currentDirectory.add(directory: directory)
             }
-            
+
             currentDirectory = directory
-            currentIndex += 1
         }
     }
     

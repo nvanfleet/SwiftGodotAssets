@@ -2,13 +2,20 @@ import Foundation
 
 enum FileType {
     case directory
-    case resource(String)
+    case resource(_ type: AssetType, _ typeString: String, _ fileExtension: String)
     case unhandled
-    
-    var isDirectory: Bool {
-        switch self {
-        case .directory:
+}
+
+extension FileType: Equatable {
+    static func == (lhs: FileType, rhs: FileType) -> Bool {
+        switch (lhs, rhs) {
+        case (.directory, .directory):
             return true
+        case (.unhandled, .unhandled):
+            return true
+        case (.resource(let lhsType, let lhsTString, let lhsExtension),
+            .resource(let rhsType, let rhsTString, let rhsExtension)):
+            return lhsType == rhsType && lhsTString == rhsTString && lhsExtension == rhsExtension
         default:
             return false
         }
@@ -16,95 +23,91 @@ enum FileType {
 }
 
 private let kIgnoreDirectories = ["build", "bin", "addons"]
-private let kResourceLookUp: [String: String] = [
-    "jpg": "Image",
-    "jpeg": "Image",
-    "gif": "Image",
-    "png": "Image",
-    "glb": "Mesh",
-    "obj": "Mesh",
-    "tscn": "PackedScene",
-    "scn": "PackedScene",
-    "gd": "Script",
-    "gdshader": "Shader",
-    "tres": "Resource",
-]
 
 /// Finds all files from the given root directory
 final class FileSystemReader {
     private let fileManager: FileManager
     private let fileStore: FileStore
-    private let root: URL
+    private let rootPath: String
+    private let assetTypes: [AssetType]
+
     /// Performs the search for all files within the filesystem
     func searchFilesFromRoot() -> Directory {
-        self.recursiveSearch(from: self.root)
-        
+        self.recursiveSearch(from: self.rootPath)
         return self.fileStore.rootDirectory
     }
     
-    init?(rootPath: String) {
+    init?(rootPath: String, assetTypes: [AssetType]) {
         self.fileManager = FileManager.default
-        let rootURL = URL(fileURLWithPath: rootPath)
-        guard let rootDirectory = Directory(url: rootURL) else {
+        self.assetTypes = assetTypes
+        guard let rootDirectory = Directory(path: rootPath) else {
             return nil
         }
         
-        self.root = rootURL
+        self.rootPath = rootPath
         self.fileStore = FileStore(root: rootDirectory)
     }
     
     // MARK: -  Private
     
-    private func recursiveSearch(from url: URL) {
-        let fileType = self.fileType(for: url)
-        switch fileType {
-        case .resource:
-            self.addFile(url: url, type: fileType)
-            return
+    private func recursiveSearch(from path: String) {
+        switch self.fileType(for: path) {
+        case .resource(let type, let typeString, let fileExtension):
+            self.fileStore.add(path: path, isDirectory: false, fileExtension: fileExtension,
+                               assetType: type, typeString: typeString)
         case .unhandled:
             return
         case .directory:
-            break
+            self.searchDirectory(at: path)
         }
-        
+    }
+
+    private func searchDirectory(at path: String) {
+        let components = path.split(separator: "/")
+
         do {
             // Avoid invisible folders or ignored folder
-            guard let lastComponent = url.pathComponents.last,
-                    lastComponent.hasPrefix(".") == false, kIgnoreDirectories.contains(lastComponent) else
+            guard let lastComponent = components.last.map(String.init),
+                  lastComponent.hasPrefix(".") == false,
+                  kIgnoreDirectories.contains(lastComponent) == false else
             {
                 return
             }
-            
-            // Ignore a directory that contains a .gdignore file
-            let contents = try self.fileManager.contentsOfDirectory(at: url, includingPropertiesForKeys: [])
-            guard contents.first(where: { $0.path.hasSuffix(".gdignore") }) != nil else {
+
+            // Ignore a directory that contains a .gdignore file since those would not be usable.
+            let contents = try self.fileManager.contentsOfDirectory(atPath: path)
+            guard contents.first(where: { $0 == ".gdignore" }) == nil else {
                 return
             }
-            
-            for file in contents  {
-                self.recursiveSearch(from: file)
+
+            for file in contents {
+                self.recursiveSearch(from: "\(path)/\(file)")
             }
         } catch let error {
-            print("Error \(error)")
+            print("Error: \(error)")
         }
     }
-    
-    private func fileType(for url: URL) -> FileType {
+
+    private func fileType(for path: String) -> FileType {
         var isDirectory: ObjCBool = false
-        self.fileManager.fileExists(atPath: url.path, isDirectory: &isDirectory)
+        let fileExists = self.fileManager.fileExists(atPath: path, isDirectory: &isDirectory)
+        guard fileExists else {
+            print("File does not exist at \(path)")
+            return .unhandled
+        }
+
         if isDirectory.boolValue {
             return .directory
         }
         
-        let fileExtension = url.pathExtension
-        guard let fileType = kResourceLookUp[fileExtension] else {
+        guard let fileExtension = path.split(separator: ".").last.map(String.init) else {
             return .unhandled
         }
-        
-        return .resource(fileType)
-    }
-    
-    private func addFile(url: URL, type: FileType) {
-        self.fileStore.add(url: url, type: type)
+
+        if let details = AssetType.details(for: fileExtension, at: path) {
+            return .resource(details.assetType, details.typeString, fileExtension)
+        }
+
+        return .unhandled
     }
 }
