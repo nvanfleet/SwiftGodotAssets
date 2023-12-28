@@ -98,23 +98,31 @@ enum AssetType: String {
         for line in fileString.components(separatedBy: .newlines) {
             // Look for a node declaration with no parent which means it's the root
             if line.hasPrefix("[node") && line.contains("parent=") == false {
-                for piece in line.split(separator: " ") {
-                    if piece.contains("type=") {
-                        // Find the type in the root node
-                        let piecePart = piece.split(separator: "=")
-                        return String(piecePart[1]).filterAlphaNumeric()
-                    } else if fileString.contains("3D") {
-                        // No type on the root node, so there is a default value, determine 3D
-                        return "Node3D"
-                    } else if fileString.contains("2D") {
-                        // No type on the root node, so there is a default value, determine 2D
-                        return "Node2D"
-                    }
+                if let found = self.findType(in: line) {
+                    return found
+                } else if fileString.contains("3D") {
+                    // No type on the root node, so there is a default value, determine 3D
+                    return "Node3D"
+                } else if fileString.contains("2D") {
+                    // No type on the root node, so there is a default value, determine 2D
+                    return "Node2D"
                 }
             }
         }
 
         print("Could not determine scene type")
+        return nil
+    }
+
+    private func findType(in line: String) -> String? {
+        for piece in line.split(separator: " ") {
+            if piece.contains("type=") {
+                // Find the type in the root node
+                let piecePart = piece.split(separator: "=")
+                return String(piecePart[1]).filterAlphaNumeric()
+            }
+        }
+
         return nil
     }
 }
