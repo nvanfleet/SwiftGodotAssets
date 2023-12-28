@@ -1,7 +1,7 @@
 import Foundation
 import SwiftGodot
 
-struct AssetScene<T: Node> {
+public struct AssetScene<T: Node> {
     /// The path to the resource.
     public let path: String
 

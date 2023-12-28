@@ -1,6 +1,6 @@
 import Foundation
 
-enum AssetError: Error {
+public enum AssetError: Error {
     case fileMissing
     case instantiateFailure
     case duplicateFailure

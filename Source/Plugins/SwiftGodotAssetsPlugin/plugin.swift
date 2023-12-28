@@ -62,7 +62,7 @@ struct Configuration: Codable {
     }
 
     private func fileList(for arguments: String) -> [String] {
-        let split  = arguments.split(separator: ",")
+        let split = arguments.split(separator: ",")
         var result = [String]()
         if split.contains("image") {
             result.append("ImageAssets.swift")
