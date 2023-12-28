@@ -114,7 +114,7 @@ enum AssetType: String {
         return nil
     }
 
-    private func findType(in line: String) -> String? {
+    private static func findType(in line: String) -> String? {
         for piece in line.split(separator: " ") {
             if piece.contains("type=") {
                 // Find the type in the root node
