@@ -4,8 +4,7 @@ var args = CommandLine.arguments
 
 let generatorOutput = args.count > 1 ? args[1] : "/Users/nvanfleet/src/PlantQuest/build/plugins/outputs/swiftgodotassets/SwiftGodotAssets/SwiftGodotAssetsPlugin/GeneratedSources"
 let assetDirectory = args.count > 2 ? args[2] : "/Users/nvanfleet/src/PlantQuest"
-let targetedTypes = args.count > 3 ? args[3] : "image,mesh,scene,script,shader,resource"
-
+let targetedTypes = args.count > 3 ? args[3] : "image,mesh,scene,script,shader,shader_material,resource"
 
 if args.count < 4 {
     print("Usage is: generator path-to-files output-directory")
@@ -15,7 +14,7 @@ if args.count < 4 {
 }
 
 do {
-    try FileManager.default.createDirectory(atPath: generatorOutput, withIntermediateDirectories: true)
+    try resetOutputFolder(outputPath: generatorOutput)
 } catch let error {
     print("Error \(error)")
 }
@@ -26,9 +25,23 @@ let assetTypes = AssetType.fromDeliminated(string: targetedTypes)
 let outputURL = URL(fileURLWithPath: generatorOutput)
 if let reader = FileSystemReader(rootPath: assetDirectory, assetTypes: assetTypes) {
     let rootDirectory = reader.searchFilesFromRoot()
+    let shaderGenerator = ShaderGenerator(rootDirectory: rootDirectory)
+    shaderGenerator.generateAllShaders()
     print("Done found \(rootDirectory.recursiveFileCount) files")
     let codeGenerator = CodeGenerator(outputURL: outputURL, rootDirectory: rootDirectory,
-                                      assetTypes: assetTypes)
+                                      shaderGenerator: shaderGenerator, assetTypes: assetTypes)
     codeGenerator.generate()
     print("Asset generation done")
+}
+
+private func resetOutputFolder(outputPath: String) throws {
+    let fileManager = FileManager.default
+    if fileManager.fileExists(atPath: outputPath) {
+        print("Removing existing folder.")
+        try fileManager.removeItem(atPath: outputPath)
+    }
+
+    print("Creating output folder.")
+    try fileManager.createDirectory(atPath: outputPath, withIntermediateDirectories: true,
+                                    attributes: nil)
 }

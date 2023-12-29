@@ -1,7 +1,7 @@
 import Foundation
 import PackagePlugin
 
-private let kAllAssetTypes = "image,mesh,scene,script,shader,resource"
+private let kAllAssetTypes = "image,mesh,scene,script,shader,shader_material,resource"
 private let kConfigFile = "AssetGeneratorConfiguration.json"
 
 struct Configuration: Codable {
@@ -42,7 +42,7 @@ struct Configuration: Codable {
             assetTarget = configuration.assetTypes
             outputList = self.fileList(for: configuration.assetTypes)
         } else {
-            print("No assets path found, using defaults that instead...")
+            print("No assets path found, using defaults that instead... \(rootPath)")
             scanningDirectory = Path(rootPath)
             assetTarget = kAllAssetTypes
             outputList = self.fileList(for: kAllAssetTypes)
@@ -76,6 +76,8 @@ struct Configuration: Codable {
             result.append("ShaderAssets.swift")
         } else if split.contains("resource") {
             result.append("ResourceAssets.swift")
+        } else if split.contains("shader_material") {
+            result.append("ShaderMaterials.swift")
         }
 
         return result

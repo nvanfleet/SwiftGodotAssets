@@ -1,36 +1,45 @@
 import Foundation
 
+private let kEnablePublic = false
+
+private let kPublic = kEnablePublic ? "public " : ""
 private let kFileStart = """
 /// This file is generated using SwiftGodotAssets
 import Foundation
 import SwiftGodot
+import SwiftGodotAssets
 
 """
-private let kEnumStartFormat = "public enum %@ {"
+private let kEnumStartFormat = kPublic + "enum %@ {"
 private let kEnumEnd = "}"
-
-private let kBaseDeclaration = "public extension Assets {"
-private let kFileFormat = "public static let %@ = %@<%@>(path: \"%@\")"
-private let kAsset = "Asset"
-private let kAssetScene = "AssetScene"
+private let kAssetFileFormat = kPublic + "static let %@ = Asset<%@>(path: \"%@\")"
+private let kSceneFileFormat = kPublic + "static let %@ = AssetScene<%@>(path: \"%@\")"
 
 final class CodeGenerator {
     private let fileManager: FileManager
     private let outputURL: URL
     private let rootDirectory: Directory
+    private let shaderGenerator: ShaderGenerator
     private let assetTypes: [AssetType]
 
-    init(outputURL: URL, rootDirectory: Directory, assetTypes: [AssetType]) {
+    init(outputURL: URL, rootDirectory: Directory, shaderGenerator: ShaderGenerator,
+         assetTypes: [AssetType])
+    {
         print("Generating code for \(assetTypes)")
         self.fileManager = FileManager.default
         self.outputURL = outputURL
         self.rootDirectory = rootDirectory
+        self.shaderGenerator = shaderGenerator
         self.assetTypes = assetTypes
     }
 
     func generate() {
         for type in self.assetTypes {
-            self.createFile(for: type)
+            if type == .shaderMaterial {
+                self.createShaderMaterialFile()
+            } else {
+                self.createFile(for: type)
+            }
         }
     }
 
@@ -40,10 +49,35 @@ final class CodeGenerator {
         let fileName = "\(assetType.fileRepresentation).swift"
         print("Create file \(assetType.fileRepresentation)")
         var output = [kFileStart]
+
         let definitions = self.definitions(for: self.rootDirectory,
                                            overridedName: assetType.classRepresentation,
                                            assetType: assetType, tabs: 0)
         output.append(contentsOf: definitions)
+        
+        self.generateFile(data: output, fileName: fileName)
+    }
+
+    private func createShaderMaterialFile() {
+        let fileName = "ShaderMaterials.swift"
+        print("Create file \(fileName)")
+        var output = [kFileStart]
+
+        output.append("// MARK: - Accessor code")
+
+        /// Accessing of the shader materials and editrs
+        output.append(contentsOf: self.shaderGenerator.accessorCode())
+
+        output.append("// MARK: - Editor Accessor code")
+
+        /// Accessing and editor off an existing shader material
+        output.append(contentsOf: self.shaderGenerator.editorAccessorCode())
+
+        output.append("// MARK: - Editor code")
+
+        /// Code for the editors.
+        output.append(contentsOf: self.shaderGenerator.editorCode())
+
         self.generateFile(data: output, fileName: fileName)
     }
 
@@ -58,17 +92,18 @@ final class CodeGenerator {
         for file in directory.files(of: assetType) {
             let assetString: String
             if assetType.isScene {
-                assetString = kAssetScene
+                assetString = String(format: kSceneFileFormat,
+                                     file.name.variableNameString(),
+                                     file.typeString,
+                                     file.godotPath)
             } else {
-                assetString = kAsset
+                assetString = String(format: kAssetFileFormat,
+                                     file.name.variableNameString(),
+                                     file.typeString,
+                                     file.godotPath)
             }
 
-            let fileString = String(format: kFileFormat, 
-                                    file.name.variableNameString(),
-                                    assetString,
-                                    file.typeString,
-                                    file.godotPath)
-            output.append(self.tab(tabs + 1) + fileString)
+            output.append(self.tab(tabs + 1) + assetString)
         }
 
         /// Recursively search child directories
@@ -93,6 +128,7 @@ final class CodeGenerator {
     }
     
     private func generateFile(data: [String], fileName: String) {
+        print("Saving file")
         let fileURL = self.outputURL.appendingPathComponent(fileName)
         let dataToSave = data.joined(separator: "\n")
         do {

@@ -4,6 +4,9 @@ class Directory {
     private(set) var childDirectories = [String: Directory]()
     private var childFiles = [String: File]()
 
+    /// Parent directory
+    let parent: Directory?
+
     /// The path of the directory.
     let path: String
 
@@ -42,6 +45,11 @@ class Directory {
         return self.files.filter { $0.assetType == assetType }
     }
 
+    /// Returns all the files of the given type from itself and all child directories
+    func recursiveFiles(of assetType: AssetType) -> [File] {
+        return self.files(of: assetType) + self.directories.flatMap { $0.recursiveFiles(of: assetType) }
+    }
+
     /// Add a directory to this directory
     func add(directory: Directory) {
         self.childDirectories[directory.name] = directory
@@ -52,9 +60,10 @@ class Directory {
         self.childFiles[file.name] = file
     }
     
-    init(name: String, path: String) {
+    init(name: String, path: String, parent: Directory? = nil) {
         self.name = name.capitalizingFirstLetter()
         self.path = path
+        self.parent = parent
     }
     
     init?(path: String) {
@@ -64,6 +73,7 @@ class Directory {
 
         self.name = String(last)
         self.path = path
+        self.parent = nil
     }
 }
 

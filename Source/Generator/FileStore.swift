@@ -14,8 +14,9 @@ final class FileStore {
             // Add file but escape if it's a directory leave function when done
             let split = component.split(separator: ".")
             if index == finalIndex && isDirectory == false, let name = split.first.map(String.init) {
-                let file = File(path: maskedPath, name: name, fileExtension: fileExtension,
-                                assetType: assetType, typeString: typeString)
+                let file = File(fullPath: path, godotPath: maskedPath, name: name,
+                                fileExtension: fileExtension, assetType: assetType, typeString: typeString,
+                                directory: currentDirectory)
                 currentDirectory.add(file: file)
                 return
             }
@@ -24,7 +25,7 @@ final class FileStore {
             if let existing = currentDirectory.childDirectories[component] {
                 directory = existing
             } else {
-                directory = Directory(name: component, path: maskedPath)
+                directory = Directory(name: component, path: maskedPath, parent: currentDirectory)
                 currentDirectory.add(directory: directory)
             }
 

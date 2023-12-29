@@ -31,6 +31,10 @@ A couple notes are:
 
 ## Setup
 
+### 1. Configuration file
+
+SwiftGodotAssets needs to know the project location and the types we are supposed to cover.
+
 The plugin needs to know the root of the godot project it's generating the files for as well as the user's 
 specific needs in terms of what kind of file types to generate assets for. 
 
@@ -44,8 +48,24 @@ This is accomplished by creating a configuration file at the root of your SwiftP
 }
 ```
 
-The asset types are a string that is a comma seperated list of elements with these options
-`image,mesh,scene,script,shader,resource`. See below for more details.
+*The asset types are a string that is a comma seperated list of elements with these options
+`image,mesh,scene,script,shader,shader_material,resource`. See below for more details.
+
+
+### 2. Add this project as a dependency in your swift package 
+```
+.package(url: "https://github.com/nvanfleet/SwiftGodotAssets.git", branch: "main"),
+```
+Don't forget to add `SwiftGodotAssets` to your target that uses it.
+
+### 3. I have had some challenges getting the generated code accessible to my app and also if it's in its own
+target that removes the ability to interpret scene files that have Custom class types from your app or other
+depenencies.
+
+So for now I create a softlink (alias) for the directory of the generated code into my swift source code
+directory. This allows the generated code to just be part of my project.
+
+`ln -s <SwiftGodotDirectory>/build/plugins/outputs/swiftgodotassets/SwiftGodotAssets/SwiftGodotAssetsPlugin/GeneratedSources <SwiftGodotDirectory><SwiftSourceGodotDirectory>/Generated`
 
 ## Supported types
 
@@ -76,6 +96,13 @@ Result: Assets of type `Script`
 
 Types: gdshader
 Result: Assets of type `Shader`
+
+### ShaderMaterials
+
+Types: gdshader
+Result: This looks at the shader files in your resources and generates a custom ShaderMaterial class that is
+named after the shader. It then auto-generates get and set APIs on that class to allow for type-safe control
+of the shader values. 
 
 ### Resource
 

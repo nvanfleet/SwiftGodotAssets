@@ -1,16 +1,21 @@
 import Foundation
 
+private let kEnableCustomTypes = true
+
 enum AssetType: String {
+    /// Image files
     case image
-
+    /// Mesh files
     case mesh
-
+    /// Scene files
     case scene
-
+    /// Script files
     case script
-
+    /// Shader files
     case shader
-
+    /// Shader Materials
+    case shaderMaterial
+    /// Resource files
     case resource
 
     /// The capitalized version of the type. Example "SceneAssets"
@@ -80,6 +85,8 @@ enum AssetType: String {
             self = AssetType.shader
         case "resource":
             self = AssetType.resource
+        case "shader_material":
+            self = AssetType.shaderMaterial
         default:
             return nil
         }
@@ -94,23 +101,32 @@ enum AssetType: String {
             return nil
         }
 
-        // Parse the format [node name="Cube" type="Spatial" parent="."]
-        for line in fileString.components(separatedBy: .newlines) {
-            // Look for a node declaration with no parent which means it's the root
-            if line.hasPrefix("[node") && line.contains("parent=") == false {
-                if let found = self.findType(in: line) {
-                    return found
-                } else if fileString.contains("3D") {
-                    // No type on the root node, so there is a default value, determine 3D
-                    return "Node3D"
-                } else if fileString.contains("2D") {
-                    // No type on the root node, so there is a default value, determine 2D
-                    return "Node2D"
+        // Look at the file and see if the type can be determined.
+        if kEnableCustomTypes {
+            // Parse the format [node name="Cube" type="Spatial" parent="."]
+            for line in fileString.components(separatedBy: .newlines) {
+                // Look for a node declaration with no parent which means it's the root
+                if line.hasPrefix("[node") && line.contains("parent=") == false {
+                    // I thought it was possible to pull out the type but it might pull out a
+                    // custom class and it would be not possible to expose a custom class in this target
+                    // and there might be a lot of leg work to make built-in classes be detectable-only
+                    if let found = self.findType(in: line) {
+                        return found
+                    }
                 }
             }
+
+            print("Could not determine scene type at: \(path)")
         }
 
-        print("Could not determine scene type")
+        if fileString.contains("3D") {
+            // No type on the root node, so there is a default value, determine 3D
+            return "Node3D"
+        } else if fileString.contains("2D") {
+            // No type on the root node, so there is a default value, determine 2D
+            return "Node2D"
+        }
+
         return nil
     }
 
