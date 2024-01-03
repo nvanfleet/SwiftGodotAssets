@@ -72,7 +72,7 @@ private let kShaderEditorGetSet = """
 """
 
 let kNonClassVariable = "%@(self.shaderMaterial.getShaderParameter(param: \"%@\"))"
-let kClassVariable = "self.shaderMaterial.getShaderParameter(param: \"%@\").getObject() as? %@"
+let kClassVariable = "self.shaderMaterial.getShaderParameter(param: \"%@\").asObject() as? %@"
 
 /// Accessor
 
