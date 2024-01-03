@@ -72,13 +72,13 @@ private let kShaderEditorGetSet = """
 """
 
 let kNonClassVariable = "%@(self.shaderMaterial.getShaderParameter(param: \"%@\"))"
-let kClassVariable = "self.shaderMaterial.getShaderParameter(param: \"%@\").asObject(%@.self) as? %@"
+let kClassVariable = "self.shaderMaterial.getShaderParameter(param: \"%@\").asObject(%@.self)"
 
 /// Accessor
 
 private let kEditorAccessor = """
     /// Access an editor of a type of a Shader Material that uses the shader at '%@'
-    public var get%@Editor: %@ShaderEditor? {
+    var get%@Editor: %@ShaderEditor? {
         return %@ShaderEditor(self)
     }
 """
@@ -90,7 +90,7 @@ private let kShaderAndEditorAccessor = """
     public static func get%@ShaderMaterial() -> (material: ShaderMaterial, editor: %@ShaderEditor?) {
         let shaderMaterial = ShaderMaterial()
         let asset = Asset<Shader>(path: "%@")
-        shaderMaterial.shader = try asset.load()
+        shaderMaterial.shader = try? asset.load()
 
         guard let editor = %@ShaderEditor(shaderMaterial) else {
             return (material: shaderMaterial, editor: nil)
@@ -146,7 +146,7 @@ struct ShaderClass {
 
             let getValue: String
             if variable.isObject {
-                getValue = String(format: kClassVariable, variable.parameter, swiftType, swiftType)
+                getValue = String(format: kClassVariable, variable.parameter, swiftType)
             } else {
                 getValue = String(format: kNonClassVariable, swiftType, variable.parameter)
             }
