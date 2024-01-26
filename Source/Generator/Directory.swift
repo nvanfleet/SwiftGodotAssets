@@ -1,5 +1,7 @@
 import Foundation
 
+private let kSkipDirectories = false
+
 class Directory {
     private(set) var childDirectories = [String: Directory]()
     private var childFiles = [String: File]()
@@ -38,6 +40,38 @@ class Directory {
         }
 
         return self.directories.first(where: { $0.recursivelyContains(of: assetType) }) != nil
+    }
+
+    /// Skips forward to a deeper directory if the initial ones contain nothing at all to do with the asset.
+    /// Effective for well organized projects that have all shaders in the "Shaders" directory etc. 
+    ///
+    /// But as new files are added to the project it may mutate the enums and break the references to some
+    /// things. For example if all shaders are in the shaders directory it would be Shaders.shaderFile. But if
+    /// you added a shader into a Test directory it would change to Shaders.Shaders.shaderFile and
+    /// Shaders.Test.shaderFile.
+    func skipToDirectory(for assetType: AssetType) -> Directory? {
+        guard kSkipDirectories else {
+            return nil
+        }
+
+        var currentDirectory = self
+        while currentDirectory.directories.isEmpty == false {
+            guard currentDirectory.files(of: assetType).isEmpty else {
+                break
+            }
+
+            let diretoriesContainingType = currentDirectory.directories.filter { directory in
+                directory.recursivelyContains(of: assetType)
+            }
+
+            if diretoriesContainingType.count == 1, let directory = diretoriesContainingType.first {
+                currentDirectory = directory
+            } else if diretoriesContainingType.count > 1 {
+                break
+            }
+        }
+
+        return currentDirectory
     }
 
     /// Files from the directory of a specific type

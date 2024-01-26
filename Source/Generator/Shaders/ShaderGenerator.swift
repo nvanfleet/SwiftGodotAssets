@@ -66,9 +66,13 @@ final class ShaderGenerator {
         }
 
         var shaderVariables = [ShaderVariable]()
+        var documentation = [String]()
         for line in fileString.components(separatedBy: .newlines) {
-            // Look for a node declaration with no parent which means it's the root
-            if line.hasPrefix("uniform") {
+            // Storing documentation based on a // prefix
+            if line.hasPrefix("//") {
+                documentation.append(line)
+            } else if line.hasPrefix("uniform") {
+                // Look for a node declaration with no parent which means it's the root
                 let components = line.split(separator: " ")
                 if components.count >= 3 {
                     let type = String(components[1])
@@ -76,9 +80,16 @@ final class ShaderGenerator {
                     if let last = parameter.last, [":", ";", "="].contains(last) {
                         _ = parameter.removeLast()
                     }
-
-                    shaderVariables.append(ShaderVariable(type: type, parameter: parameter))
+                    let variable = ShaderVariable(type: type, parameter: parameter,
+                                                  documentation: documentation)
+                    shaderVariables.append(variable)
                 }
+
+                // Clear documentation since we just used it.
+                documentation = []
+            } else {
+                // The line was neither documentation or a uniform, so we can blow storage away for docs.
+                documentation = []
             }
         }
 

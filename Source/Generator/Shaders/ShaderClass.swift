@@ -59,6 +59,7 @@ private let kEditorInit = """
     }
 """
 private let kShaderEditorGetSet = """
+%@
     public var %@: %@? {
         get {
             return %@
@@ -152,8 +153,8 @@ struct ShaderClass {
             }
 
             output.append("")
-            let getSetValue = String(format: kShaderEditorGetSet, variable.variableName, swiftType, getValue,
-                                     variable.parameter, variantCreation)
+            let getSetValue = String(format: kShaderEditorGetSet, variable.docStrings, variable.variableName,
+                                     swiftType, getValue, variable.parameter, variantCreation)
             output.append(contentsOf: getSetValue.components(separatedBy: .newlines))
         }
         output.append(kClosing)
@@ -181,6 +182,12 @@ struct ShaderClass {
 struct ShaderVariable {
     let type: String
     let parameter: String
+    let documentation: [String]
+
+    /// Turns what we expect to be something like "// something" and then
+    var docStrings: String {
+        return self.documentation.map { "    /" + $0 }.joined(separator: "\n")
+    }
 
     /// Name for the uniform value used in the functions. uv1_scale would be "Uv1Scale" for functions
     /// like "getUv1Scale" and "setUv1Scale"

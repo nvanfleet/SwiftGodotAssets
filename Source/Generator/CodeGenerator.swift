@@ -50,7 +50,14 @@ final class CodeGenerator {
         print("Create file \(assetType.fileRepresentation)")
         var output = [kFileStart]
 
-        let definitions = self.definitions(for: self.rootDirectory,
+        let startDirectory: Directory
+        if let skipDirectory = self.rootDirectory.skipToDirectory(for: assetType) {
+            startDirectory = skipDirectory
+        } else {
+            startDirectory = self.rootDirectory
+        }
+
+        let definitions = self.definitions(for: startDirectory,
                                            overridedName: assetType.classRepresentation,
                                            assetType: assetType, tabs: 0)
         output.append(contentsOf: definitions)
@@ -87,7 +94,7 @@ final class CodeGenerator {
         guard directory.recursivelyContains(of: assetType) else {
             return []
         }
-        
+
         var output = [self.tab(tabs) + String(format: kEnumStartFormat, overridedName ?? directory.name)]
         for file in directory.files(of: assetType) {
             let assetString: String

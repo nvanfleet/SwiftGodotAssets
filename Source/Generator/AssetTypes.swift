@@ -56,7 +56,7 @@ enum AssetType: String {
             "png": (assetType: .image, typeString: "CompressedTexture2D"),
             "glb": (assetType: .mesh, typeString: "Mesh"),
             "obj": (assetType: .mesh, typeString: "Mesh"),
-            "tscn": (assetType: .scene, typeString: "Scene"),
+            "tscn": (assetType: .scene, typeString: "Node"),
             "gd": (assetType: .script, typeString: "Script"),
             "gdshader": (assetType: .shader, typeString: "Shader"),
             "tres": (assetType: .resource, typeString: "Resource"),
