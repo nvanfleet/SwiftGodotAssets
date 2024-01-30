@@ -168,7 +168,7 @@ extension String {
 
         // Handle the case where the name starts with a number which is not supported in swift
         if let first = self.first, Int(String(first)) != nil {
-            string = "variable_\(self)"
+            string = "v\(self)"
         // Check if the first character is lowercase, otherwise lowercase the string
         } else if count > 1, self.first?.isLowercase == false {
             string = String(prefix(1).lowercased() + dropFirst())
