@@ -22,7 +22,8 @@ final class FileStore {
             }
 
             let directory: Directory
-            if let existing = currentDirectory.directories.first(where: { $0.name == component }) {
+            let uppercasedComponent = String(component).capitalizingFirstLetter()
+            if let existing = currentDirectory.directories.first(where: { $0.name == uppercasedComponent }) {
                 directory = existing
             } else {
                 directory = Directory(name: component, path: maskedPath, parent: currentDirectory)
