@@ -3,9 +3,6 @@ import Foundation
 private let kSkipDirectories = false
 
 class Directory {
-    private(set) var childDirectories = [String: Directory]()
-    private var childFiles = [String: File]()
-
     /// Parent directory
     let parent: Directory?
 
@@ -16,11 +13,11 @@ class Directory {
     let name: String
 
     /// The files in this directory
-    var files: [File] { self.childFiles.map { $0.value } }
-    
+    private(set) var files =  [File]()
+
     /// The directories in this directory
-    var directories: [Directory] { self.childDirectories.map { $0.value } }
-    
+    private(set) var directories = [Directory]()
+
     /// Whether there are files in this directory
     var hasFiles: Bool { self.files.isEmpty == false }
     
@@ -77,7 +74,6 @@ class Directory {
     /// Files from the directory of a specific type
     func files(of assetType: AssetType) -> [File] {
         let files = self.files.filter { $0.assetType == assetType }
-        print("found \(files.count) for \(assetType) \(files)")
         return files
     }
 
@@ -88,12 +84,12 @@ class Directory {
 
     /// Add a directory to this directory
     func add(directory: Directory) {
-        self.childDirectories[directory.name] = directory
+        self.directories.append(directory)
     }
     
     /// Add a file to this directory.
     func add(file: File) {
-        self.childFiles[file.name] = file
+        self.files.append(file)
     }
     
     init(name: String, path: String, parent: Directory? = nil) {
