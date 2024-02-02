@@ -173,8 +173,8 @@ extension String {
         }
 
         let parts = string.components(separatedBy: .alphanumerics.inverted)
-        let first = parts.first!.lowercasingFirst
-        let rest = parts.dropFirst().map { $0.uppercasingFirst }
+        let first = parts.first!.prefix(1).lowercased() + dropFirst()
+        let rest = parts.dropFirst().map { $0.prefix(1).uppercased() + dropFirst() }
         return ([first] + rest).joined()
     }
 }
