@@ -170,14 +170,15 @@ extension String {
         // Handle the case where the name starts with a number which is not supported in swift
         if let first = self.first, Int(String(first)) != nil {
             string = "v\(self)"
+        // Check if the first character is lowercase, otherwise lowercase the string
+        } else if count > 1, self.first?.isLowercase == false {
+            string = String(prefix(1).lowercased() + dropFirst())
         } else {
             string = self
         }
 
-        let parts = string.components(separatedBy: .alphanumerics.inverted)
-        let first = parts.first!.prefix(1).lowercased() + dropFirst()
-        let rest = parts.dropFirst().map { $0.prefix(1).uppercased() + dropFirst() }
-        return ([first] + rest).joined()
+        // filter out whitespace to make things valid. Replace dashes with underscores
+        return string.filter{ $0.isWhitespace == false }.replacing("-", with: "")
     }
 }
 
