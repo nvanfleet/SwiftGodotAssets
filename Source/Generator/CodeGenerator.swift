@@ -96,7 +96,7 @@ final class CodeGenerator {
         }
 
         var output = [self.tab(tabs) + String(format: kEnumStartFormat, overridedName ?? directory.name)]
-        for file in directory.files(of: assetType).sorted(by: { $0.name < $1.name }) {
+        for file in directory.files(of: assetType).sorted(by: { $0.variableNameString() < $1.variableNameString() }) {
             let assetString: String
             if assetType.isScene {
                 assetString = String(format: kSceneFileFormat,
