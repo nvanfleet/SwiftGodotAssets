@@ -33,12 +33,12 @@ public struct Asset<T: Resource> {
     }
 }
 
-public extension Asset: Hashable {
-    static func == (lhs: Asset, rhs: Asset) -> Bool {
+extension Asset: Hashable {
+    public static func == (lhs: Asset, rhs: Asset) -> Bool {
         return lhs.path == rhs.path
     }
 
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         hasher.combine(self.path)
     }
 }
