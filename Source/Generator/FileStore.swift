@@ -22,7 +22,7 @@ final class FileStore {
             }
 
             let directory: Directory
-            if let existing = currentDirectory.childDirectories[component] {
+            if let existing = currentDirectory.directories.first(where: { $0.name == component }) {
                 directory = existing
             } else {
                 directory = Directory(name: component, path: maskedPath, parent: currentDirectory)
