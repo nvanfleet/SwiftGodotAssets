@@ -21,6 +21,8 @@ final class FileStore {
                 return
             }
 
+            print("Adding \(path)")
+
             let directory: Directory
             if let existing = currentDirectory.childDirectories[component] {
                 directory = existing
