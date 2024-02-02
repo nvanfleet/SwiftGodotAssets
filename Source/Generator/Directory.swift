@@ -76,7 +76,9 @@ class Directory {
 
     /// Files from the directory of a specific type
     func files(of assetType: AssetType) -> [File] {
-        return self.files.filter { $0.assetType == assetType }
+        let files = self.files.filter { $0.assetType == assetType }
+        print("found \(files.count) for \(assetType) \(files)")
+        return files
     }
 
     /// Returns all the files of the given type from itself and all child directories
