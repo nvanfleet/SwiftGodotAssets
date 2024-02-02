@@ -42,3 +42,13 @@ public struct AssetScene<T: Node> {
         self.path = path
     }
 }
+
+public extension AssetScene: Hashable {
+    static func == (lhs: AssetScene, rhs: AssetScene) -> Bool {
+        return lhs.path == rhs.path
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(self.path)
+    }
+}

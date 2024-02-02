@@ -93,7 +93,7 @@ class Directory {
     }
     
     init(name: String, path: String, parent: Directory? = nil) {
-        self.name = name.capitalizingFirstLetter()
+        self.name = name
         self.path = path
         self.parent = parent
     }

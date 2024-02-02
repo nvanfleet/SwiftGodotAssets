@@ -33,6 +33,16 @@ public struct Asset<T: Resource> {
     }
 }
 
+public extension Asset: Hashable {
+    static func == (lhs: Asset, rhs: Asset) -> Bool {
+        return lhs.path == rhs.path
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(self.path)
+    }
+}
+
 extension Asset where T == CompressedTexture2D {
     /// Load the image from a compressed texture
     public func image() throws -> SwiftGodot.Image {
