@@ -170,6 +170,8 @@ extension String {
         // Handle the case where the name starts with a number which is not supported in swift
         if let first = self.first, Int(String(first)) != nil {
             string = "v\(self)"
+        } else {
+            string = self
         }
 
         let parts = string.components(separatedBy: .alphanumerics.inverted)
