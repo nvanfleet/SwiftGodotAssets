@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/migueldeicaza/SwiftGodot",
       "state" : {
-        "branch" : "0.37",
-        "revision" : "e18cfffcc6dfa3351b0668e573f9dad007e935d6"
+        "revision" : "1790059d74533ca6e974a48e521578b930cec9d1",
+        "version" : "0.40.0"
       }
     }
   ],
