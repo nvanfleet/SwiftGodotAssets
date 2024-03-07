@@ -9,7 +9,7 @@ let package = Package(
         .library(name: "SwiftGodotAssets", type: .dynamic, targets: ["SwiftGodotAssets"]),
         .plugin(name: "SwiftGodotAssetsPlugin", targets: ["SwiftGodotAssetsPlugin"]),
     ],
-    dependencies: [.package(url: "https://github.com/migueldeicaza/SwiftGodot", revision: "0.37")],
+    dependencies: [.package(url: "https://github.com/migueldeicaza/SwiftGodot", from: "0.37")],
     targets: [
         .target(name: "SwiftGodotAssets", dependencies: ["SwiftGodot"], path: "Source/SwiftGodotAssets",
                 plugins: ["SwiftGodotAssetsPlugin"]),
