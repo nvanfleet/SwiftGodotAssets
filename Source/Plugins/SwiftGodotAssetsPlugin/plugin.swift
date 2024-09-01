@@ -53,7 +53,7 @@ struct Configuration: Codable {
         let arguments: [CustomStringConvertible] = [ genSourcesDir, scanningDirectory, assetTarget ]
         let outputFiles: [Path] = outputList.map { genSourcesDir.appending([$0]) }
         let cmd: Command = Command.buildCommand(
-            displayName: "Generating SwiftAssets to \(genSourcesDir)",
+            displayName: "Generating SwiftAssets to genSourcesDir: \(genSourcesDir) arguments: \(arguments) outputFiles: \(outputFiles)",
             executable: generator,
             arguments: arguments,
             inputFiles: [scanningDirectory],
