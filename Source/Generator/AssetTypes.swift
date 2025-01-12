@@ -1,6 +1,6 @@
 import Foundation
 
-private let kEnableCustomTypes = true
+private let kEnableCustomTypes = false
 
 enum AssetType: String {
     /// Image files

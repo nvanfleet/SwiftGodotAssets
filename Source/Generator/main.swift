@@ -11,8 +11,6 @@ let assetDirectory = args.count > 2 ? args[2] : ""
 /// image,mesh,scene,script,shader,shader_material,resource
 let targetedTypes = args.count > 3 ? args[3] : "image,mesh,scene,script,shader,shader_material,resource"
 
-print("Hello")
-
 if args.count < 4 {
     print("Usage is: generator path-to-files output-directory")
     print("- path-to-files is the full path to extension_api.json from Godot")
