@@ -48,8 +48,8 @@ struct Configuration: Codable {
             outputList = self.fileList(for: kAllAssetTypes)
         }
 
-        let generator: Path = try context.tool(named: "AssetGenerator").path
         let genSourcesDir = context.pluginWorkDirectory.appending("GeneratedSources")
+        let generator: Path = try context.tool(named: "AssetGenerator").path
         let arguments: [CustomStringConvertible] = [ genSourcesDir, scanningDirectory, assetTarget ]
         let outputFiles: [Path] = outputList.map { genSourcesDir.appending([$0]) }
         let cmd: Command = Command.buildCommand(
@@ -62,24 +62,16 @@ struct Configuration: Codable {
     }
 
     private func fileList(for arguments: String) -> [String] {
-        let split = arguments.split(separator: ",")
-        var result = [String]()
-        if split.contains("image") {
-            result.append("ImageAssets.swift")
-        } else if split.contains("mesh") {
-            result.append("MeshAssets.swift")
-        } else if split.contains("scene") {
-            result.append("SceneAssets.swift")
-        } else if split.contains("script") {
-            result.append("ScriptAssets.swift")
-        } else if split.contains("shader") {
-            result.append("ShaderAssets.swift")
-        } else if split.contains("resource") {
-            result.append("ResourceAssets.swift")
-        } else if split.contains("shader_material") {
-            result.append("ShaderMaterials.swift")
-        }
+        let lookup = [
+            "image" : "ImageAssets.swift",
+            "mesh" : "MeshAssets.swift",
+            "scene" : "SceneAssets.swift",
+            "script" : "ScriptAssets.swift",
+            "shader" : "ShaderAssets.swift",
+            "resource" : "ResourceAssets.swift",
+            "shader_material" : "ShaderMaterials.swift",
+        ]
 
-        return result
+        return arguments.split(separator: ",").map { lookup[String($0)] }.compactMap { $0 }
     }
 }

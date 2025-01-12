@@ -2,9 +2,16 @@ import Foundation
 
 var args = CommandLine.arguments
 
-let generatorOutput = args.count > 1 ? args[1] : "/Users/nvanfleet/src/PlantQuest/build/plugins/outputs/swiftgodotassets/SwiftGodotAssets/SwiftGodotAssetsPlugin/GeneratedSources"
-let assetDirectory = args.count > 2 ? args[2] : "/Users/nvanfleet/src/PlantQuest"
+/// /Users/nvanfleet/src/PlantQuest/build/plugins/outputs/swiftgodotassets/SwiftGodotAssets/SwiftGodotAssetsPlugin/GeneratedSources
+let generatorOutput = args.count > 1 ? args[1] : ""
+
+/// /Users/nvanfleet/src/PlantQuest
+let assetDirectory = args.count > 2 ? args[2] : ""
+
+/// image,mesh,scene,script,shader,shader_material,resource
 let targetedTypes = args.count > 3 ? args[3] : "image,mesh,scene,script,shader,shader_material,resource"
+
+print("Hello")
 
 if args.count < 4 {
     print("Usage is: generator path-to-files output-directory")
