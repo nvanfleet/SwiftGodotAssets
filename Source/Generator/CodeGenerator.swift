@@ -1,6 +1,6 @@
 import Foundation
 
-private let kEnablePublic = false
+private let kEnablePublic = true
 
 private let kPublic = kEnablePublic ? "public " : ""
 private let kFileStart = """
