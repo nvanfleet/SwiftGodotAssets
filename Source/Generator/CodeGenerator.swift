@@ -13,7 +13,7 @@ import SwiftGodotAssets
 private let kEnumStartFormat = kPublic + "enum %@ {"
 private let kEnumEnd = "}"
 private let kAssetFileFormat = kPublic + "static let %@ = Asset<%@>(path: \"%@\")"
-private let kSceneFileFormat = kPublic + "static let %@ = AssetScene<%@>(path: \"%@\")"
+private let kSceneFileFormat = kPublic + "static let %@ = AssetScene(path: \"%@\")"
 
 final class CodeGenerator {
     private let fileManager: FileManager
@@ -100,7 +100,6 @@ final class CodeGenerator {
             let assetString: String
             if assetType.isScene {
                 assetString = String(format: kSceneFileFormat,
-                                     file.name.variableNameString(),
                                      file.typeString,
                                      file.godotPath)
             } else {
