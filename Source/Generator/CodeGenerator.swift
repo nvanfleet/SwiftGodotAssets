@@ -100,7 +100,7 @@ final class CodeGenerator {
             let assetString: String
             if assetType.isScene {
                 assetString = String(format: kSceneFileFormat,
-                                     file.typeString,
+                                     file.name.variableNameString(),
                                      file.godotPath)
             } else {
                 assetString = String(format: kAssetFileFormat,
