@@ -1,7 +1,7 @@
 import Foundation
 import SwiftGodot
 
-public struct AssetScene<T: Node> {
+public struct AssetScene {
     /// The path to the resource.
     public let path: String
 
@@ -20,7 +20,7 @@ public struct AssetScene<T: Node> {
     /// - duplicate: Whether to create a duplicate of said scene
     ///
     /// - returns: The packed scene.
-    public func instantiate(duplicate: Bool = false) throws -> T {
+    public func instantiate<T: Node>(duplicate: Bool = false) throws -> T {
         let loaded = try self.load(duplicate: duplicate)
         guard let instantiated = loaded.instantiate() as? T else {
             throw(AssetError.instantiateFailure)
